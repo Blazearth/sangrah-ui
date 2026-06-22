@@ -2,26 +2,175 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ═══════════════════════════════════════════
+   Sangrah Design System — Global Styles
+   Scholarly Technical · Obsidian Foundation
+   ═══════════════════════════════════════════ */
 
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --obsidian: #050505;
+    --surface: #131313;
+    --secondary-blue: #b1c5ff;
+    --glass-bg: rgba(18, 18, 18, 0.4);
+    --glass-border: rgba(255, 255, 255, 0.05);
+    --terminal-bg: rgba(5, 5, 5, 0.8);
+    --terminal-border: rgba(255, 255, 255, 0.1);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: var(--obsidian);
+    color: #e5e2e1;
+    font-family: "Inter", sans-serif;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background-color: #c6c6c7;
+    color: #131313;
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  /* Glass Panels — navbar, overlays, cards */
+  .glass-panel {
+    background: var(--glass-bg);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--glass-border);
+  }
+
+  /* Terminal / Code Blocks */
+  .terminal-block {
+    background-color: var(--terminal-bg);
+    border: 1px solid var(--terminal-border);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  /* Editorial Line — section divider */
+  .editorial-line {
+    width: 1px;
+    height: 120px;
+    background: linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.2),
+      transparent
+    );
+    margin: 0 auto;
+  }
+
+  /* Scroll Reveal — IntersectionObserver driven */
+  .reveal {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .reveal.active {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Form inputs — Stitch dark input style */
+  .sangrah-input {
+    background-color: var(--obsidian);
+    border: 1px solid #262626;
+    border-radius: 0.25rem;
+    padding: 0.75rem 1.5rem;
+    font-family: "Inter", sans-serif;
+    font-size: 16px;
+    color: #ffffff;
+    outline: none;
+    transition: border-color 0.3s ease;
+  }
+
+  .sangrah-input::placeholder {
+    color: #8e9192;
+  }
+
+  .sangrah-input:focus {
+    border-color: #b1c5ff;
+    box-shadow: 0 0 0 1px #b1c5ff;
+  }
+
+  /* Primary Button */
+  .btn-primary {
+    background-color: #ffffff;
+    color: #2f3131;
+    font-family: "Inter", sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 0.75rem 2rem;
+    border-radius: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    transition: all 0.3s ease;
+  }
+
+  .btn-primary:hover {
+    background-color: #c6c6c7;
+  }
+
+  /* Secondary / Ghost Button */
+  .btn-secondary {
+    background-color: transparent;
+    color: #ffffff;
+    font-family: "Inter", sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 0.75rem 2rem;
+    border: 1px solid #444748;
+    border-radius: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    transition: all 0.3s ease;
+  }
+
+  .btn-secondary:hover {
+    border-color: #ffffff;
+  }
+
+  /* Gradient scroll indicator */
+  .scroll-line {
+    width: 1px;
+    height: 48px;
+    background: linear-gradient(to bottom, #8e9192, transparent);
+  }
 }
 
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
+  /* Stagger animation delays for hero */
+  .stagger-1 { animation-delay: 0.1s; }
+  .stagger-2 { animation-delay: 0.3s; }
+  .stagger-3 { animation-delay: 0.5s; }
+  .stagger-4 { animation-delay: 0.7s; }
+
+  .opacity-initial-0 {
+    opacity: 0;
   }
+}
+
+/* Custom scrollbar for the scholarly feel */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #050505;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2a2a2a;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #444748;
 }
