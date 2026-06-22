@@ -80,8 +80,8 @@ const config: Config = {
       fontFamily: {
         "body-base": ["Inter", "sans-serif"],
         "display-lg": ["'Noto Serif'", "serif"],
-        "mono-ui": ["'Geist Mono'", "'Geist'", "monospace"],
-        "code-label": ["'Geist Mono'", "'Geist'", "monospace"],
+        "mono-ui": ["Geist", "monospace"],
+        "code-label": ["Geist", "monospace"],
         "headline-md": ["'Noto Serif'", "serif"],
         "body-sm": ["Inter", "sans-serif"],
         "display-lg-mobile": ["'Noto Serif'", "serif"],
