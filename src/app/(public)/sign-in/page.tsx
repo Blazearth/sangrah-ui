@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useAuth } from "@/context/AuthContext";
 
 export default function SignInPage() {
+  const { signIn } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -14,11 +16,12 @@ export default function SignInPage() {
     setLoading(true);
     setError("");
 
-    // TODO: Connect to auth API
-    // Simulated delay for now
-    await new Promise((r) => setTimeout(r, 1000));
-    setLoading(false);
-    setError("Authentication service not yet connected.");
+    try {
+      await signIn(email, password);
+    } catch {
+      setError("Authentication failed. Please try again.");
+      setLoading(false);
+    }
   };
 
   return (

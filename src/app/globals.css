@@ -143,6 +143,20 @@
     height: 48px;
     background: linear-gradient(to bottom, #8e9192, transparent);
   }
+
+  /* Dashboard surface */
+  .bg-obsidian {
+    background-color: #050505;
+  }
+
+  .bg-surface {
+    background-color: #131313;
+  }
+
+  /* font-headline-md shorthand */
+  .font-headline-md {
+    font-family: "Noto Serif", serif;
+  }
 }
 
 @layer utilities {

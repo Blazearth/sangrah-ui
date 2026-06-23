@@ -35,19 +35,19 @@ export default function Navbar() {
         {/* Desktop Nav Links */}
         <div className="hidden md:flex gap-xl font-body-base text-body-sm text-on-surface-variant tracking-wide uppercase">
           <a
-            href="#story"
+            href="/#story"
             className="hover:text-primary transition-colors duration-300"
           >
             The Story
           </a>
           <a
-            href="#foundation"
+            href="/#foundation"
             className="hover:text-primary transition-colors duration-300"
           >
             Foundation
           </a>
           <a
-            href="#pricing"
+            href="/#pricing"
             className="hover:text-primary transition-colors duration-300"
           >
             Pricing
@@ -105,21 +105,21 @@ export default function Navbar() {
       {mobileOpen && (
         <div className="md:hidden mt-4 pb-4 border-t border-outline-variant/20 pt-4 flex flex-col gap-4">
           <a
-            href="#story"
+            href="/#story"
             className="font-body-base text-body-sm text-on-surface-variant hover:text-primary transition-colors uppercase tracking-wide"
             onClick={() => setMobileOpen(false)}
           >
             The Story
           </a>
           <a
-            href="#foundation"
+            href="/#foundation"
             className="font-body-base text-body-sm text-on-surface-variant hover:text-primary transition-colors uppercase tracking-wide"
             onClick={() => setMobileOpen(false)}
           >
             Foundation
           </a>
           <a
-            href="#pricing"
+            href="/#pricing"
             className="font-body-base text-body-sm text-on-surface-variant hover:text-primary transition-colors uppercase tracking-wide"
             onClick={() => setMobileOpen(false)}
           >
