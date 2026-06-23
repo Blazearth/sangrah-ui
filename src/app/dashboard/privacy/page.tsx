@@ -1,138 +1,102 @@
 "use client";
 
 import DashboardCard from "@/components/dashboard/DashboardCard";
-
-const privacyConfig = {
-  epsilon: 10.0,
-  delta: 1e-5,
-  mechanism: "Gaussian",
-  totalEpochs: 50,
-};
-
-const epochBudgets = [
-  { epoch: 1, consumed: 0.18 }, { epoch: 2, consumed: 0.20 }, { epoch: 3, consumed: 0.19 },
-  { epoch: 4, consumed: 0.21 }, { epoch: 5, consumed: 0.18 }, { epoch: 6, consumed: 0.22 },
-  { epoch: 7, consumed: 0.20 }, { epoch: 8, consumed: 0.19 }, { epoch: 9, consumed: 0.21 },
-  { epoch: 10, consumed: 0.18 }, { epoch: 11, consumed: 0.20 }, { epoch: 12, consumed: 0.22 },
-  { epoch: 13, consumed: 0.19 }, { epoch: 14, consumed: 0.21 }, { epoch: 15, consumed: 0.20 },
-  { epoch: 16, consumed: 0.19 }, { epoch: 17, consumed: 0.21 }, { epoch: 18, consumed: 0.20 },
-  { epoch: 19, consumed: 0.22 }, { epoch: 20, consumed: 0.19 }, { epoch: 21, consumed: 0.20 },
-  { epoch: 22, consumed: 0.21 }, { epoch: 23, consumed: 0.19 }, { epoch: 24, consumed: 0.18 },
-];
-
-const totalConsumed = epochBudgets.reduce((sum, e) => sum + e.consumed, 0);
-const cumulativeData = epochBudgets.map((_, i) => ({
-  epoch: epochBudgets[i].epoch,
-  cumulative: epochBudgets.slice(0, i + 1).reduce((s, e) => s + e.consumed, 0),
-}));
-const maxCumulative = privacyConfig.epsilon;
-const pctUsed = (totalConsumed / maxCumulative) * 100;
+import { useActiveEpoch } from "@/hooks/useCoordinator";
 
 export default function PrivacyPage() {
+  const { epoch, isLoading, error } = useActiveEpoch();
+  const isMock = !!error || !epoch;
+
+  const epsilon = epoch?.privacy_epsilon ?? 1.0;
+  const delta = epoch?.privacy_delta ?? 1e-5;
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-display-lg text-headline-md text-primary">
-          Privacy Budget
-        </h1>
-        <p className="font-body-sm text-on-surface-variant mt-1">
-          Cumulative ε tracking with per-epoch consumption breakdown.
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="font-display-lg text-headline-md text-primary">
+            Privacy Budget
+          </h1>
+          <p className="font-body-sm text-on-surface-variant mt-1">
+            Differential privacy parameters for the active epoch.
+          </p>
+        </div>
+        {isMock && (
+          <span className="font-mono-ui text-[10px] text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2 py-1 rounded uppercase tracking-wider">
+            Mock data
+          </span>
+        )}
       </div>
 
-      {/* Config + Status */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <DashboardCard>
-          <p className="font-mono-ui text-code-label text-outline uppercase tracking-widest mb-2">
-            ε Budget
-          </p>
-          <p className="font-display-lg text-3xl text-primary">
-            {privacyConfig.epsilon.toFixed(1)}
-          </p>
-          <p className="font-mono-ui text-mono-ui text-outline-variant mt-1">total allowed</p>
+          <p className="font-mono-ui text-code-label text-outline uppercase tracking-widest mb-2">ε (Epsilon)</p>
+          {isLoading ? (
+            <div className="h-9 w-16 bg-surface-container-high rounded animate-pulse" />
+          ) : (
+            <p className="font-display-lg text-3xl text-primary">{epsilon.toFixed(1)}</p>
+          )}
+          <p className="font-mono-ui text-mono-ui text-outline-variant mt-1">privacy budget</p>
         </DashboardCard>
 
         <DashboardCard>
-          <p className="font-mono-ui text-code-label text-outline uppercase tracking-widest mb-2">
-            ε Consumed
-          </p>
-          <p className="font-display-lg text-3xl text-secondary">
-            {totalConsumed.toFixed(2)}
-          </p>
-          <p className="font-mono-ui text-mono-ui text-outline-variant mt-1">
-            {pctUsed.toFixed(1)}% used
-          </p>
+          <p className="font-mono-ui text-code-label text-outline uppercase tracking-widest mb-2">δ (Delta)</p>
+          {isLoading ? (
+            <div className="h-9 w-16 bg-surface-container-high rounded animate-pulse" />
+          ) : (
+            <p className="font-display-lg text-3xl text-primary">{delta.toExponential(0)}</p>
+          )}
+          <p className="font-mono-ui text-mono-ui text-outline-variant mt-1">failure probability</p>
         </DashboardCard>
 
         <DashboardCard>
-          <p className="font-mono-ui text-code-label text-outline uppercase tracking-widest mb-2">
-            δ (delta)
-          </p>
-          <p className="font-display-lg text-3xl text-primary">1e-5</p>
-          <p className="font-mono-ui text-mono-ui text-outline-variant mt-1">failure prob.</p>
-        </DashboardCard>
-
-        <DashboardCard>
-          <p className="font-mono-ui text-code-label text-outline uppercase tracking-widest mb-2">
-            Mechanism
-          </p>
-          <p className="font-display-lg text-3xl text-primary">
-            {privacyConfig.mechanism}
-          </p>
+          <p className="font-mono-ui text-code-label text-outline uppercase tracking-widest mb-2">Mechanism</p>
+          <p className="font-display-lg text-3xl text-primary">Gaussian</p>
           <p className="font-mono-ui text-mono-ui text-outline-variant mt-1">noise type</p>
+        </DashboardCard>
+
+        <DashboardCard>
+          <p className="font-mono-ui text-code-label text-outline uppercase tracking-widest mb-2">Epoch</p>
+          {isLoading ? (
+            <div className="h-9 w-16 bg-surface-container-high rounded animate-pulse" />
+          ) : (
+            <p className="font-display-lg text-3xl text-primary">#{epoch?.epoch_number ?? "—"}</p>
+          )}
+          <p className={`font-mono-ui text-mono-ui mt-1 ${epoch?.status === "ACTIVE" ? "text-green-400" : "text-outline-variant"}`}>
+            {epoch?.status ?? "—"}
+          </p>
         </DashboardCard>
       </div>
 
-      {/* Budget progress */}
-      <DashboardCard title="Budget Consumption" subtitle={`${totalConsumed.toFixed(2)} / ${privacyConfig.epsilon} ε used across ${epochBudgets.length} epochs`}>
-        <div className="mb-4">
-          <div className="flex justify-between mb-2">
-            <span className="font-mono-ui text-xs text-outline-variant">0</span>
-            <span className="font-mono-ui text-xs text-outline-variant">
-              ε = {privacyConfig.epsilon}
-            </span>
+      <DashboardCard title="Privacy Configuration" subtitle={`model_id: ${epoch?.model_id ?? "fraud-detection-v2"} · epoch ${epoch?.epoch_number ?? "—"}`}>
+        {isLoading ? (
+          <div className="space-y-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="h-8 bg-surface-container-high rounded animate-pulse" />
+            ))}
           </div>
-          <div className="w-full h-3 bg-surface-container-high rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all ${
-                pctUsed > 80 ? "bg-error" : pctUsed > 60 ? "bg-amber-400" : "bg-secondary"
-              }`}
-              style={{ width: `${pctUsed}%` }}
-            />
+        ) : (
+          <div className="space-y-0">
+            {[
+              ["ε (Epsilon)", epsilon, "Lower = stronger privacy. This epoch uses " + epsilon],
+              ["δ (Delta)", delta.toExponential(1), "Probability that ε-DP guarantee fails"],
+              ["Clip Threshold", "1.0", "Gradient L2 norm clipping (from daemon config)"],
+              ["FedProx μ", epoch?.fedprox_mu ?? "0.01", "Proximal term strength"],
+              ["SecAgg Threshold", epoch?.secure_agg_threshold ?? 2, "Min submissions to trigger aggregation"],
+              ["Architecture Hash", epoch?.architecture_hash ?? "—", "Model structure integrity check"],
+            ].map(([label, value, desc]) => (
+              <div key={String(label)} className="flex items-start justify-between py-4 border-b border-outline-variant/10 last:border-0">
+                <div>
+                  <p className="font-mono-ui text-xs text-primary">{label}</p>
+                  <p className="font-mono-ui text-[10px] text-outline-variant mt-0.5">{desc}</p>
+                </div>
+                <span className="font-mono-ui text-sm text-secondary ml-8 flex-shrink-0">
+                  {String(value)}
+                </span>
+              </div>
+            ))}
           </div>
-          <div className="flex justify-between mt-2">
-            <span className="font-mono-ui text-xs text-secondary">
-              {totalConsumed.toFixed(2)} consumed
-            </span>
-            <span className="font-mono-ui text-xs text-outline-variant">
-              {(privacyConfig.epsilon - totalConsumed).toFixed(2)} remaining
-            </span>
-          </div>
-        </div>
-
-        {/* Cumulative bar chart */}
-        <div className="mt-6">
-          <p className="font-mono-ui text-[10px] text-outline uppercase tracking-wider mb-3">
-            Cumulative ε by Epoch
-          </p>
-          <div className="h-32 flex items-end gap-[2px]">
-            {cumulativeData.map((d) => {
-              const h = (d.cumulative / maxCumulative) * 100;
-              return (
-                <div
-                  key={d.epoch}
-                  className="flex-1 bg-secondary/40 hover:bg-secondary/70 transition-colors rounded-t-sm"
-                  style={{ height: `${h}%`, minHeight: "2px" }}
-                  title={`Epoch ${d.epoch}: ε=${d.cumulative.toFixed(2)}`}
-                />
-              );
-            })}
-          </div>
-          <div className="flex justify-between mt-1">
-            <span className="font-mono-ui text-[9px] text-outline-variant">Epoch 1</span>
-            <span className="font-mono-ui text-[9px] text-outline-variant">Epoch {epochBudgets.length}</span>
-          </div>
-        </div>
+        )}
       </DashboardCard>
     </div>
   );
