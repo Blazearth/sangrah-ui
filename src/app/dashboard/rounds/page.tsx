@@ -1,27 +1,97 @@
 "use client";
 
 import DashboardCard from "@/components/dashboard/DashboardCard";
+import { useAudit, useActiveEpoch } from "@/hooks/useCoordinator";
 
-const epochs = [
-  { epoch: 24, status: "in_progress", startedAt: "2025-06-22 14:30", duration: "-", participants: "4/5", loss: 0.0342, accuracy: "96.8%" },
-  { epoch: 23, status: "completed", startedAt: "2025-06-22 12:15", duration: "2h 14m", participants: "5/5", loss: 0.0360, accuracy: "96.5%" },
-  { epoch: 22, status: "completed", startedAt: "2025-06-22 09:45", duration: "2h 28m", participants: "5/5", loss: 0.0385, accuracy: "96.1%" },
-  { epoch: 21, status: "completed", startedAt: "2025-06-21 18:00", duration: "2h 05m", participants: "5/5", loss: 0.0401, accuracy: "95.8%" },
-  { epoch: 20, status: "completed", startedAt: "2025-06-21 15:30", duration: "2h 31m", participants: "5/5", loss: 0.0423, accuracy: "95.4%" },
-  { epoch: 19, status: "completed", startedAt: "2025-06-21 12:45", duration: "2h 44m", participants: "4/5", loss: 0.0448, accuracy: "95.0%" },
-  { epoch: 18, status: "failed", startedAt: "2025-06-21 10:00", duration: "0h 42m", participants: "3/5", loss: null, accuracy: "-" },
-  { epoch: 17, status: "completed", startedAt: "2025-06-20 22:00", duration: "2h 18m", participants: "5/5", loss: 0.0461, accuracy: "94.7%" },
-  { epoch: 16, status: "completed", startedAt: "2025-06-20 19:30", duration: "2h 30m", participants: "5/5", loss: 0.0489, accuracy: "94.2%" },
-  { epoch: 15, status: "completed", startedAt: "2025-06-20 16:45", duration: "2h 44m", participants: "5/5", loss: 0.0512, accuracy: "93.8%" },
-];
-
-const statusBadge: Record<string, { bg: string; text: string; label: string }> = {
-  in_progress: { bg: "bg-secondary/15", text: "text-secondary", label: "In Progress" },
-  completed: { bg: "bg-green-500/15", text: "text-green-400", label: "Completed" },
-  failed: { bg: "bg-error/15", text: "text-error", label: "Failed" },
-};
+// Derive round history from audit events — each AGGREGATION_TRIGGERED is a round
+function timeAgo(isoStr: string) {
+  const diffMs = Date.now() - new Date(isoStr).getTime();
+  const hrs = Math.floor(diffMs / 3600000);
+  if (hrs < 1) return `${Math.floor(diffMs / 60000)}m ago`;
+  if (hrs < 24) return `${hrs}h ago`;
+  return `${Math.floor(hrs / 24)}d ago`;
+}
 
 export default function RoundsPage() {
+  const { entries, isLoading, error } = useAudit(undefined, 50);
+  const { epoch } = useActiveEpoch();
+
+  // Build round data from audit entries
+  const rounds = entries.reduce<
+    {
+      epoch_number: number;
+      status: string;
+      submissions: number;
+      threshold: number;
+      model_hash: string | null;
+      model_s3_key: string | null;
+      completed_at: string | null;
+      triggered_at: string | null;
+    }[]
+  >((acc, entry) => {
+    const epochNum = entry.epoch_number;
+    let round = acc.find((r) => r.epoch_number === epochNum);
+    if (!round) {
+      round = {
+        epoch_number: epochNum,
+        status: "unknown",
+        submissions: 0,
+        threshold: 1,
+        model_hash: null,
+        model_s3_key: null,
+        completed_at: null,
+        triggered_at: null,
+      };
+      acc.push(round);
+    }
+
+    if (entry.event_type === "UPDATE_SUBMITTED") {
+      round.submissions += 1;
+    } else if (entry.event_type === "AGGREGATION_TRIGGERED") {
+      round.status = "AGGREGATED";
+      round.triggered_at = entry.created_at;
+      try {
+        const payload = typeof entry.payload === "string" ? JSON.parse(entry.payload) : entry.payload;
+        round.threshold = payload.threshold ?? 1;
+        round.submissions = payload.submission_count ?? round.submissions;
+      } catch { /* ignore */ }
+    } else if (entry.event_type === "MODEL_PUBLISHED") {
+      round.status = "COMPLETED";
+      round.completed_at = entry.created_at;
+      try {
+        const payload = typeof entry.payload === "string" ? JSON.parse(entry.payload) : entry.payload;
+        round.model_hash = payload.model_hash ?? null;
+        round.model_s3_key = payload.s3_key ?? null;
+      } catch { /* ignore */ }
+    }
+
+    return acc;
+  }, []);
+
+  // Sort by epoch descending
+  rounds.sort((a, b) => b.epoch_number - a.epoch_number);
+
+  // Add the current active epoch as the top row if not already covered
+  if (epoch && !rounds.find((r) => r.epoch_number === Number(epoch.epoch_number))) {
+    rounds.unshift({
+      epoch_number: Number(epoch.epoch_number),
+      status: String(epoch.status),
+      submissions: 0,
+      threshold: Number(epoch.secure_agg_threshold ?? 1),
+      model_hash: null,
+      model_s3_key: null,
+      completed_at: null,
+      triggered_at: null,
+    });
+  }
+
+  const statusBadge: Record<string, { bg: string; text: string }> = {
+    ACTIVE: { bg: "bg-green-500/15", text: "text-green-400" },
+    COMPLETED: { bg: "bg-secondary/15", text: "text-secondary" },
+    AGGREGATED: { bg: "bg-amber-500/15", text: "text-amber-400" },
+    unknown: { bg: "bg-outline/15", text: "text-outline" },
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -29,78 +99,76 @@ export default function RoundsPage() {
           Training Rounds
         </h1>
         <p className="font-body-sm text-on-surface-variant mt-1">
-          Epoch history and aggregation status.
+          Epoch history derived from the coordinator audit chain.
         </p>
       </div>
 
-      <DashboardCard noPadding>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-outline-variant/15">
-                <th className="text-left font-mono-ui text-code-label text-outline uppercase tracking-widest px-6 py-3">
-                  Epoch
-                </th>
-                <th className="text-left font-mono-ui text-code-label text-outline uppercase tracking-widest px-6 py-3">
-                  Status
-                </th>
-                <th className="text-left font-mono-ui text-code-label text-outline uppercase tracking-widest px-6 py-3">
-                  Started
-                </th>
-                <th className="text-left font-mono-ui text-code-label text-outline uppercase tracking-widest px-6 py-3">
-                  Duration
-                </th>
-                <th className="text-left font-mono-ui text-code-label text-outline uppercase tracking-widest px-6 py-3">
-                  Participants
-                </th>
-                <th className="text-right font-mono-ui text-code-label text-outline uppercase tracking-widest px-6 py-3">
-                  Loss
-                </th>
-                <th className="text-right font-mono-ui text-code-label text-outline uppercase tracking-widest px-6 py-3">
-                  Accuracy
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {epochs.map((e) => {
-                const badge = statusBadge[e.status];
-                return (
-                  <tr
-                    key={e.epoch}
-                    className="border-b border-outline-variant/5 hover:bg-surface-container/30 transition-colors cursor-pointer"
-                  >
-                    <td className="px-6 py-3.5 font-mono-ui text-sm text-primary">
-                      #{e.epoch}
-                    </td>
-                    <td className="px-6 py-3.5">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-mono-ui uppercase tracking-wider ${badge.bg} ${badge.text}`}
-                      >
-                        {badge.label}
-                      </span>
-                    </td>
-                    <td className="px-6 py-3.5 font-mono-ui text-xs text-on-surface-variant">
-                      {e.startedAt}
-                    </td>
-                    <td className="px-6 py-3.5 font-mono-ui text-xs text-on-surface-variant">
-                      {e.duration}
-                    </td>
-                    <td className="px-6 py-3.5 font-mono-ui text-xs text-on-surface-variant">
-                      {e.participants}
-                    </td>
-                    <td className="px-6 py-3.5 font-mono-ui text-xs text-primary text-right">
-                      {e.loss !== null ? e.loss.toFixed(4) : "-"}
-                    </td>
-                    <td className="px-6 py-3.5 font-mono-ui text-xs text-primary text-right">
-                      {e.accuracy}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </DashboardCard>
+      {isLoading ? (
+        <DashboardCard noPadding>
+          <div className="p-6 space-y-3">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="h-12 bg-surface-container-high rounded animate-pulse" />
+            ))}
+          </div>
+        </DashboardCard>
+      ) : error ? (
+        <DashboardCard>
+          <p className="font-body-sm text-sm text-error py-8 text-center">
+            Failed to load audit data from coordinator.
+          </p>
+        </DashboardCard>
+      ) : rounds.length === 0 ? (
+        <DashboardCard>
+          <p className="font-body-sm text-sm text-outline-variant py-8 text-center">
+            No training rounds recorded yet.
+          </p>
+        </DashboardCard>
+      ) : (
+        <DashboardCard noPadding>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-outline-variant/15">
+                  {["Epoch", "Status", "Submissions", "Threshold", "Model Hash", "Completed"].map((h) => (
+                    <th key={h} className="text-left font-mono-ui text-code-label text-outline uppercase tracking-widest px-6 py-3">
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {rounds.map((r) => {
+                  const badge = statusBadge[r.status] ?? statusBadge.unknown;
+                  return (
+                    <tr key={r.epoch_number} className="border-b border-outline-variant/5 hover:bg-surface-container/30 transition-colors">
+                      <td className="px-6 py-3.5 font-mono-ui text-sm text-primary">
+                        #{r.epoch_number}
+                      </td>
+                      <td className="px-6 py-3.5">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-mono-ui uppercase tracking-wider ${badge.bg} ${badge.text}`}>
+                          {r.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-3.5 font-mono-ui text-xs text-on-surface-variant">
+                        {r.submissions}
+                      </td>
+                      <td className="px-6 py-3.5 font-mono-ui text-xs text-on-surface-variant">
+                        {r.threshold}
+                      </td>
+                      <td className="px-6 py-3.5 font-mono-ui text-[10px] text-secondary">
+                        {r.model_hash ? `${r.model_hash.slice(0, 16)}...` : "—"}
+                      </td>
+                      <td className="px-6 py-3.5 font-mono-ui text-xs text-on-surface-variant">
+                        {r.completed_at ? timeAgo(r.completed_at) : "—"}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </DashboardCard>
+      )}
     </div>
   );
 }

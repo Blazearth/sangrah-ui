@@ -4,23 +4,6 @@ import DashboardCard from "@/components/dashboard/DashboardCard";
 import { useAuth } from "@/context/AuthContext";
 import { useActiveEpoch, useAudit, useHealth } from "@/hooks/useCoordinator";
 
-// Fallback mock data used when coordinator is not reachable
-const MOCK_EPOCH = {
-  epoch_number: 3,
-  status: "ACTIVE" as const,
-  model_version: "v3",
-  privacy_epsilon: 1.0,
-  privacy_delta: 1e-5,
-  model_hash: "sha256:pending...",
-};
-
-const MOCK_ACTIVITY = [
-  { created_at: new Date().toISOString(), event_type: "MODEL_PUBLISHED", org_id: "coordinator", entry_hash: "sha256:a4f2...", previous_hash: "sha256:e0d1..." },
-  { created_at: new Date(Date.now() - 5 * 60000).toISOString(), event_type: "AGGREGATION_TRIGGERED", org_id: "coordinator", entry_hash: "sha256:e0d1...", previous_hash: "sha256:d9e0..." },
-  { created_at: new Date(Date.now() - 12 * 60000).toISOString(), event_type: "UPDATE_SUBMITTED", org_id: "org-aiims", entry_hash: "sha256:d9e0...", previous_hash: "sha256:c8d9..." },
-  { created_at: new Date(Date.now() - 18 * 60000).toISOString(), event_type: "UPDATE_SUBMITTED", org_id: "org-kgmu", entry_hash: "sha256:c8d9...", previous_hash: "sha256:b7c8..." },
-];
-
 const eventColor: Record<string, string> = {
   MODEL_PUBLISHED: "text-primary",
   AGGREGATION_TRIGGERED: "text-secondary",
@@ -43,11 +26,6 @@ export default function DashboardPage() {
   const { entries, isLoading: auditLoading } = useAudit(undefined, 10);
   const { isHealthy } = useHealth();
 
-  // Use real data if available, otherwise fall back to mock
-  const e = epoch ?? MOCK_EPOCH;
-  const activity = entries.length > 0 ? entries : MOCK_ACTIVITY;
-  const isMock = !!epochError || !epoch;
-
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -61,21 +39,14 @@ export default function DashboardPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {isMock && (
-            <span className="font-mono-ui text-[10px] text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2 py-1 rounded uppercase tracking-wider">
-              Mock data — coordinator offline
-            </span>
-          )}
-          <div className="flex items-center gap-2">
-            <div
-              className={`w-2 h-2 rounded-full ${
-                isHealthy ? "bg-green-500 animate-pulse" : "bg-error"
-              }`}
-            />
-            <span className="font-mono-ui text-[10px] text-outline-variant uppercase tracking-wider">
-              {isHealthy ? "Connected" : "Disconnected"}
-            </span>
-          </div>
+          <div
+            className={`w-2 h-2 rounded-full ${
+              isHealthy ? "bg-green-500 animate-pulse" : "bg-error"
+            }`}
+          />
+          <span className="font-mono-ui text-[10px] text-outline-variant uppercase tracking-wider">
+            {isHealthy ? "Coordinator Online" : "Coordinator Offline"}
+          </span>
         </div>
       </div>
 
@@ -87,21 +58,21 @@ export default function DashboardPage() {
           </p>
           {epochLoading ? (
             <div className="h-9 w-16 bg-surface-container-high rounded animate-pulse" />
+          ) : epoch ? (
+            <p className="font-display-lg text-3xl text-primary">#{epoch.epoch_number}</p>
           ) : (
-            <p className="font-display-lg text-3xl text-primary">
-              #{e.epoch_number}
-            </p>
+            <p className="font-display-lg text-3xl text-outline-variant">—</p>
           )}
           <p
             className={`font-mono-ui text-mono-ui mt-2 uppercase tracking-wider ${
-              e.status === "ACTIVE"
+              epoch?.status === "ACTIVE"
                 ? "text-green-400"
-                : e.status === "AGGREGATING"
+                : epoch?.status === "AGGREGATING"
                 ? "text-amber-400"
                 : "text-outline-variant"
             }`}
           >
-            {e.status}
+            {epoch?.status ?? (epochError ? "No active epoch" : "Loading...")}
           </p>
         </DashboardCard>
 
@@ -111,13 +82,13 @@ export default function DashboardPage() {
           </p>
           {epochLoading ? (
             <div className="h-9 w-16 bg-surface-container-high rounded animate-pulse" />
+          ) : epoch ? (
+            <p className="font-display-lg text-3xl text-primary">{epoch.model_version}</p>
           ) : (
-            <p className="font-display-lg text-3xl text-primary">
-              {e.model_version}
-            </p>
+            <p className="font-display-lg text-3xl text-outline-variant">—</p>
           )}
-          <p className="font-mono-ui text-mono-ui text-outline-variant mt-2">
-            {e.model_hash?.slice(0, 18)}...
+          <p className="font-mono-ui text-mono-ui text-outline-variant mt-2 truncate">
+            {epoch?.model_hash ? `${String(epoch.model_hash).slice(0, 18)}...` : "—"}
           </p>
         </DashboardCard>
 
@@ -127,35 +98,33 @@ export default function DashboardPage() {
           </p>
           {epochLoading ? (
             <div className="h-9 w-16 bg-surface-container-high rounded animate-pulse" />
-          ) : (
+          ) : epoch ? (
             <p className="font-display-lg text-3xl text-primary">
-              {e.privacy_epsilon?.toFixed(1) ?? "—"}
+              {Number(epoch.privacy_epsilon).toFixed(1)}
             </p>
+          ) : (
+            <p className="font-display-lg text-3xl text-outline-variant">—</p>
           )}
           <p className="font-mono-ui text-mono-ui text-outline-variant mt-2">
-            δ = {e.privacy_delta ?? "—"}
+            δ = {epoch?.privacy_delta ?? "—"}
           </p>
         </DashboardCard>
 
         <DashboardCard>
           <p className="font-mono-ui text-code-label text-outline uppercase tracking-widest mb-2">
-            Drift Alerts
+            Participants
           </p>
           {epochLoading ? (
             <div className="h-9 w-16 bg-surface-container-high rounded animate-pulse" />
-          ) : (
-            <p
-              className={`font-display-lg text-3xl ${
-                (epoch?.drift_alerts?.length ?? 0) > 0
-                  ? "text-error"
-                  : "text-primary"
-              }`}
-            >
-              {epoch?.drift_alerts?.length ?? 0}
+          ) : epoch?.secure_agg_participants ? (
+            <p className="font-display-lg text-3xl text-primary">
+              {(epoch.secure_agg_participants as unknown[]).length}
             </p>
+          ) : (
+            <p className="font-display-lg text-3xl text-outline-variant">—</p>
           )}
           <p className="font-mono-ui text-mono-ui text-outline-variant mt-2">
-            features flagged
+            threshold: {epoch?.secure_agg_threshold ?? "—"}
           </p>
         </DashboardCard>
       </div>
@@ -165,7 +134,7 @@ export default function DashboardPage() {
         {/* Epoch Detail */}
         <DashboardCard
           title="Active Epoch"
-          subtitle={`model_id: ${epoch?.model_id ?? "fraud-detection-v2"}`}
+          subtitle={epoch ? `model_id: ${epoch.model_id}` : "No data"}
           className="lg:col-span-1"
         >
           {epochLoading ? (
@@ -174,16 +143,17 @@ export default function DashboardPage() {
                 <div key={i} className="h-4 bg-surface-container-high rounded animate-pulse" />
               ))}
             </div>
-          ) : (
+          ) : epoch ? (
             <div className="space-y-3">
               {[
-                ["Epoch ID", `#${e.epoch_number}`],
-                ["Status", e.status],
-                ["FedProx μ", epoch?.fedprox_mu ?? "—"],
-                ["SecAgg Threshold", epoch?.secure_agg_threshold ?? "—"],
-                ["ε / δ", `${e.privacy_epsilon ?? "—"} / ${e.privacy_delta ?? "—"}`],
+                ["Epoch", `#${epoch.epoch_number}`],
+                ["Status", epoch.status],
+                ["FedProx μ", epoch.fedprox_mu],
+                ["SecAgg Threshold", epoch.secure_agg_threshold],
+                ["ε / δ", `${epoch.privacy_epsilon} / ${epoch.privacy_delta}`],
+                ["Arch Hash", epoch.architecture_hash],
               ].map(([label, value]) => (
-                <div key={label} className="flex justify-between items-center py-1 border-b border-outline-variant/10 last:border-0">
+                <div key={String(label)} className="flex justify-between items-center py-1 border-b border-outline-variant/10 last:border-0">
                   <span className="font-mono-ui text-[10px] text-outline uppercase tracking-wider">
                     {label}
                   </span>
@@ -193,13 +163,17 @@ export default function DashboardPage() {
                 </div>
               ))}
             </div>
+          ) : (
+            <p className="font-body-sm text-sm text-outline-variant py-8 text-center">
+              No active epoch. Activate one via the coordinator.
+            </p>
           )}
         </DashboardCard>
 
         {/* Audit Feed */}
         <DashboardCard
           title="Audit Feed"
-          subtitle="Live hash chain events"
+          subtitle={`${entries.length} events from coordinator`}
           className="lg:col-span-2"
           noPadding
         >
@@ -209,9 +183,13 @@ export default function DashboardPage() {
                 <div key={i} className="h-8 bg-surface-container-high rounded animate-pulse" />
               ))}
             </div>
+          ) : entries.length === 0 ? (
+            <p className="font-body-sm text-sm text-outline-variant py-12 text-center">
+              No audit events recorded yet.
+            </p>
           ) : (
             <div className="divide-y divide-outline-variant/10">
-              {activity.map((item, i) => (
+              {entries.map((item, i) => (
                 <div
                   key={i}
                   className="flex items-start gap-4 px-6 py-3 hover:bg-surface-container/30 transition-colors"
@@ -228,7 +206,7 @@ export default function DashboardPage() {
                       {item.event_type.replace(/_/g, " ")}
                     </span>
                     <span className="font-mono-ui text-[10px] text-outline-variant ml-2">
-                      · {item.org_id}
+                      · {item.org_id} · epoch #{item.epoch_number}
                     </span>
                   </div>
                   <span className="font-mono-ui text-[10px] text-outline-variant hidden md:block">

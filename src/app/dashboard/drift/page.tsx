@@ -5,10 +5,9 @@ import { useActiveEpoch } from "@/hooks/useCoordinator";
 import type { DriftAlert } from "@/types/coordinator";
 
 export default function DriftPage() {
-  const { epoch, isLoading, error } = useActiveEpoch();
+  const { epoch, isLoading } = useActiveEpoch();
 
   const driftAlerts: DriftAlert[] = epoch?.drift_alerts ?? [];
-  const isMock = !!error || !epoch;
   const alertCount = driftAlerts.length;
 
   return (
@@ -22,11 +21,7 @@ export default function DriftPage() {
             Per-feature distribution shift alerts from the coordinator.
           </p>
         </div>
-        {isMock && (
-          <span className="font-mono-ui text-[10px] text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2 py-1 rounded uppercase tracking-wider">
-            Mock data
-          </span>
-        )}
+
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

@@ -4,11 +4,10 @@ import DashboardCard from "@/components/dashboard/DashboardCard";
 import { useActiveEpoch } from "@/hooks/useCoordinator";
 
 export default function PrivacyPage() {
-  const { epoch, isLoading, error } = useActiveEpoch();
-  const isMock = !!error || !epoch;
+  const { epoch, isLoading } = useActiveEpoch();
 
-  const epsilon = epoch?.privacy_epsilon ?? 1.0;
-  const delta = epoch?.privacy_delta ?? 1e-5;
+  const epsilon = epoch?.privacy_epsilon != null ? Number(epoch.privacy_epsilon) : null;
+  const delta = epoch?.privacy_delta != null ? Number(epoch.privacy_delta) : null;
 
   return (
     <div className="space-y-6">
@@ -21,11 +20,7 @@ export default function PrivacyPage() {
             Differential privacy parameters for the active epoch.
           </p>
         </div>
-        {isMock && (
-          <span className="font-mono-ui text-[10px] text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2 py-1 rounded uppercase tracking-wider">
-            Mock data
-          </span>
-        )}
+
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -34,7 +29,7 @@ export default function PrivacyPage() {
           {isLoading ? (
             <div className="h-9 w-16 bg-surface-container-high rounded animate-pulse" />
           ) : (
-            <p className="font-display-lg text-3xl text-primary">{epsilon.toFixed(1)}</p>
+            <p className="font-display-lg text-3xl text-primary">{epsilon !== null ? epsilon.toFixed(1) : "—"}</p>
           )}
           <p className="font-mono-ui text-mono-ui text-outline-variant mt-1">privacy budget</p>
         </DashboardCard>
@@ -44,7 +39,7 @@ export default function PrivacyPage() {
           {isLoading ? (
             <div className="h-9 w-16 bg-surface-container-high rounded animate-pulse" />
           ) : (
-            <p className="font-display-lg text-3xl text-primary">{delta.toExponential(0)}</p>
+            <p className="font-display-lg text-3xl text-primary">{delta !== null ? delta.toExponential(0) : "—"}</p>
           )}
           <p className="font-mono-ui text-mono-ui text-outline-variant mt-1">failure probability</p>
         </DashboardCard>
@@ -68,7 +63,7 @@ export default function PrivacyPage() {
         </DashboardCard>
       </div>
 
-      <DashboardCard title="Privacy Configuration" subtitle={`model_id: ${epoch?.model_id ?? "fraud-detection-v2"} · epoch ${epoch?.epoch_number ?? "—"}`}>
+      <DashboardCard title="Privacy Configuration" subtitle={epoch ? `model_id: ${epoch.model_id} · epoch ${epoch.epoch_number}` : "No active epoch"}>
         {isLoading ? (
           <div className="space-y-3">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -78,8 +73,8 @@ export default function PrivacyPage() {
         ) : (
           <div className="space-y-0">
             {[
-              ["ε (Epsilon)", epsilon, "Lower = stronger privacy. This epoch uses " + epsilon],
-              ["δ (Delta)", delta.toExponential(1), "Probability that ε-DP guarantee fails"],
+              ["ε (Epsilon)", epsilon !== null ? epsilon : "—", epsilon !== null ? `Lower = stronger privacy. This epoch uses ${epsilon}` : "Not available"],
+              ["δ (Delta)", delta !== null ? delta.toExponential(1) : "—", "Probability that ε-DP guarantee fails"],
               ["Clip Threshold", "1.0", "Gradient L2 norm clipping (from daemon config)"],
               ["FedProx μ", epoch?.fedprox_mu ?? "0.01", "Proximal term strength"],
               ["SecAgg Threshold", epoch?.secure_agg_threshold ?? 2, "Min submissions to trigger aggregation"],
