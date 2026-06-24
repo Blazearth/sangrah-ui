@@ -1,9 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { CheckCircle } from "lucide-react";
 
-export default function SignUpPage() {
+function SignUpForm() {
+  const searchParams = useSearchParams();
+  const plan = searchParams.get("plan");
+  const isResearch = plan === "research";
+  const isEnterprise = plan === "enterprise";
+
   const [formData, setFormData] = useState({
     orgName: "",
     email: "",
@@ -35,9 +42,7 @@ export default function SignUpPage() {
       <section className="min-h-screen flex items-center justify-center px-lg py-32">
         <div className="glass-panel rounded-xl p-10 md:p-12 w-full max-w-md text-center">
           <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-secondary/20 border border-secondary/40 flex items-center justify-center">
-            <span className="material-symbols-outlined text-secondary text-2xl">
-              check
-            </span>
+            <CheckCircle className="w-8 h-8 text-secondary" />
           </div>
           <h1 className="font-display-lg text-headline-md text-primary mb-4">
             Request Submitted
@@ -60,10 +65,14 @@ export default function SignUpPage() {
       <div className="glass-panel rounded-xl p-10 md:p-12 w-full max-w-md">
         {/* Header */}
         <h1 className="font-display-lg text-headline-md text-primary mb-2">
-          Request Access
+          {isResearch ? "Start Research" : isEnterprise ? "Book a Demo" : "Request Access"}
         </h1>
         <p className="font-body-base text-body-sm text-on-surface-variant mb-8">
-          Enterprise federation requires organizational verification.
+          {isResearch
+            ? "Free tier for academic institutions — up to 5 federation nodes."
+            : isEnterprise
+              ? "Enterprise deployment with dedicated solutions engineering."
+              : "Enterprise federation requires organizational verification."}
         </p>
 
         {/* Form */}
@@ -161,6 +170,10 @@ export default function SignUpPage() {
                 </svg>
                 Submitting...
               </span>
+            ) : isResearch ? (
+              "Start Free"
+            ) : isEnterprise ? (
+              "Book a Demo"
             ) : (
               "Request Access"
             )}
@@ -181,5 +194,13 @@ export default function SignUpPage() {
         </div>
       </div>
     </section>
+  );
+}
+
+export default function SignUpPage() {
+  return (
+    <Suspense>
+      <SignUpForm />
+    </Suspense>
   );
 }

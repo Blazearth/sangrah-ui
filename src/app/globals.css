@@ -54,6 +54,12 @@
     -webkit-backdrop-filter: blur(12px);
   }
 
+  /* Stitch-style hero terminal — pure black */
+  .terminal-block-stitch {
+    background-color: #000000;
+    border: 1px solid #262626;
+  }
+
   /* Editorial Line — section divider */
   .editorial-line {
     width: 1px;
@@ -142,6 +148,62 @@
     width: 1px;
     height: 48px;
     background: linear-gradient(to bottom, #8e9192, transparent);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .scroll-line-animated::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 12px;
+    background: #b1c5ff;
+    border-radius: 1px;
+    animation: scrollBounce 2s ease-in-out infinite;
+  }
+
+  @keyframes scrollBounce {
+    0% {
+      transform: translateY(0);
+      opacity: 0;
+    }
+    30% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(48px);
+      opacity: 0;
+    }
+  }
+
+  @keyframes dashFlow {
+    to {
+      stroke-dashoffset: -20;
+    }
+  }
+
+  .animate-dash-flow {
+    animation: dashFlow 2s linear infinite;
+  }
+
+  /* Partners marquee */
+  @keyframes partnersMarquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  .partners-marquee {
+    animation: partnersMarquee 40s linear infinite;
+  }
+
+  .partners-marquee:hover {
+    animation-play-state: paused;
   }
 
   /* Dashboard surface */
@@ -166,8 +228,33 @@
   .stagger-3 { animation-delay: 0.5s; }
   .stagger-4 { animation-delay: 0.7s; }
 
+  .stagger-reveal-1 { transition-delay: 0.1s; }
+  .stagger-reveal-2 { transition-delay: 0.25s; }
+  .stagger-reveal-3 { transition-delay: 0.4s; }
+
   .opacity-initial-0 {
     opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .animate-fade-in-up,
+  .animate-spin-slow,
+  .animate-pulse-glow,
+  .animate-dash-flow,
+  .scroll-line-animated::after {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .partners-marquee {
+    animation: none !important;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100% !important;
   }
 }
 

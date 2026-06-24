@@ -95,11 +95,11 @@ const config: Config = {
           },
         ],
         "display-lg": [
-          "64px",
+          "48px",
           {
-            lineHeight: "1.1",
-            letterSpacing: "-0.03em",
-            fontWeight: "400",
+            lineHeight: "1.2",
+            letterSpacing: "-0.02em",
+            fontWeight: "700",
           },
         ],
         "mono-ui": [
@@ -132,11 +132,11 @@ const config: Config = {
           },
         ],
         "display-lg-mobile": [
-          "40px",
+          "32px",
           {
             lineHeight: "1.2",
             letterSpacing: "-0.02em",
-            fontWeight: "400",
+            fontWeight: "700",
           },
         ],
       },
@@ -155,6 +155,12 @@ const config: Config = {
           "0%, 100%": { opacity: "0.4" },
           "50%": { opacity: "1" },
         },
+        gradientPacket: {
+          "0%": { opacity: "0" },
+          "10%": { opacity: "1" },
+          "90%": { opacity: "1" },
+          "100%": { opacity: "0" },
+        },
       },
       animation: {
         "fade-in-up":
@@ -169,6 +175,7 @@ const config: Config = {
           "fadeInUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.7s forwards",
         "pulse-glow": "pulseGlow 3s ease-in-out infinite",
         "spin-slow": "spin 60s linear infinite",
+        "gradient-packet": "gradientPacket 3s ease-in-out infinite",
       },
     },
   },

@@ -1,6 +1,8 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import LiquidMetalShader from "@/components/LiquidMetalShader";
+import GridBackground from "@/components/GridBackground";
+import ScrollProgress from "@/components/ScrollProgress";
+import MobileStickyCTA from "@/components/MobileStickyCTA";
 
 export default function PublicLayout({
   children,
@@ -9,10 +11,12 @@ export default function PublicLayout({
 }) {
   return (
     <>
-      <LiquidMetalShader />
+      <GridBackground />
+      <ScrollProgress />
       <Navbar />
       <main className="flex-grow w-full flex flex-col">{children}</main>
       <Footer />
+      <MobileStickyCTA />
     </>
   );
 }

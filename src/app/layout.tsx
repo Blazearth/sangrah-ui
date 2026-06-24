@@ -3,9 +3,13 @@ import "./globals.css";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: "Sangrah — Enterprise Federated Learning",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://sangrah.dev"),
+  title: {
+    default: "Sangrah — Enterprise Federated Learning",
+    template: "%s | Sangrah",
+  },
   description:
-    "The production-grade Rust daemon for enterprise federated learning. Train models across organizational boundaries without transferring raw data.",
+    "Collaborate on AI models across hospitals, banks, and enterprises — without moving a single record. Production-grade Rust daemon for enterprise federated learning.",
   keywords: [
     "federated learning",
     "enterprise AI",
@@ -14,6 +18,28 @@ export const metadata: Metadata = {
     "Rust",
     "machine learning",
   ],
+  authors: [{ name: "Sangrah Systems" }],
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    siteName: "Sangrah",
+    title: "Sangrah — Enterprise Federated Learning",
+    description:
+      "Unite your intelligence. Keep your data. Production-grade federated learning for regulated industries.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Sangrah — Enterprise Federated Learning",
+    description:
+      "Unite your intelligence. Keep your data. Production-grade federated learning for regulated industries.",
+  },
+  icons: {
+    icon: "/favicon.svg",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
