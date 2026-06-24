@@ -29,9 +29,9 @@ const faqItems = [
   },
   {
     id: "enterprise",
-    question: "How does Enterprise onboarding work?",
+    question: "How do I get started or request a demo?",
     answer:
-      "Enterprise deployments include a dedicated solutions engineer, custom SLA, on-premise orchestrator options, and quantum-resistant cryptography. Submit a request and our team will contact you within 24 hours to scope your federation.",
+      "Reach out via email at arthsrivastava1@gmail.com, WhatsApp at +91 94518 07965, or call +91 87997 20386. We'll walk you through a demo, discuss your use case, and help scope your federation deployment.",
   },
 ];
 

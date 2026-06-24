@@ -12,7 +12,6 @@ import UseCasesSection from "@/components/landing/UseCasesSection";
 import PricingSection from "@/components/landing/PricingSection";
 import PartnersStrip from "@/components/landing/PartnersStrip";
 import FAQSection from "@/components/landing/FAQSection";
-import CTASection from "@/components/landing/CTASection";
 
 export default function LandingPage() {
   useScrollReveal();
@@ -30,7 +29,6 @@ export default function LandingPage() {
       <PricingSection />
       <PartnersStrip />
       <FAQSection />
-      <CTASection />
     </>
   );
 }

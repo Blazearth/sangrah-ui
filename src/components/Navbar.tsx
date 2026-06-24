@@ -8,7 +8,7 @@ const navLinks = [
   { href: "/#hero", label: "Product", id: "hero", page: false },
   { href: "/security", label: "Security", id: null, page: true },
   { href: "/docs", label: "Documentation", id: null, page: true },
-  { href: "/#pricing", label: "Pricing", id: "pricing", page: false },
+  { href: "/#contact", label: "Contact", id: "contact", page: false },
 ];
 
 export default function Navbar() {
