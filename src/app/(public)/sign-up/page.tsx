@@ -55,8 +55,9 @@ function SignUpForm() {
       }
 
       setSubmitted(true);
-    } catch (err: any) {
-      setError(err.message || "Something went wrong. Please try again.");
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : "Something went wrong. Please try again.";
+      setError(errMsg);
     } finally {
       setLoading(false);
     }
