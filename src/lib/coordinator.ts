@@ -16,25 +16,29 @@ const ORG_ID = process.env.COORDINATOR_ORG_ID ?? "org-aiims";
 const MODEL_ID = process.env.COORDINATOR_MODEL_ID ?? "fraud-detection-v2";
 
 // ─── mTLS agent (loaded once) ─────────────────────────────────────────────────
+// Supports two modes:
+//   Local dev  → reads from file paths (COORDINATOR_CERT_PATH / COORDINATOR_KEY_PATH)
+//   Vercel/cloud → reads from base64 env vars (COORDINATOR_CERT_B64 / COORDINATOR_KEY_B64)
 let _tlsAgent: https.Agent | null = null;
+
+function getCertBuffer(b64Env: string, pathEnv: string): Buffer {
+  const b64 = process.env[b64Env];
+  if (b64) return Buffer.from(b64, "base64");
+  const filePath = process.env[pathEnv];
+  if (filePath) return fs.readFileSync(filePath);
+  throw new Error(`Neither ${b64Env} nor ${pathEnv} is set`);
+}
 
 function getTlsAgent(): https.Agent {
   if (_tlsAgent) return _tlsAgent;
 
-  const certPath = process.env.COORDINATOR_CERT_PATH!;
-  const keyPath = process.env.COORDINATOR_KEY_PATH!;
-  const caPath = process.env.COORDINATOR_CA_PATH!;
-
-  if (!certPath || !keyPath || !caPath) {
-    throw new Error(
-      "mTLS mode requires COORDINATOR_CERT_PATH, COORDINATOR_KEY_PATH, COORDINATOR_CA_PATH"
-    );
-  }
+  const cert = getCertBuffer("COORDINATOR_CERT_B64", "COORDINATOR_CERT_PATH");
+  const key  = getCertBuffer("COORDINATOR_KEY_B64",  "COORDINATOR_KEY_PATH");
 
   _tlsAgent = new https.Agent({
-    cert: fs.readFileSync(certPath),
-    key: fs.readFileSync(keyPath),
-    // No 'ca' here — API Gateway's server cert is signed by Amazon's public CA.
+    cert,
+    key,
+    // API Gateway's server cert is signed by Amazon's public CA (trusted by Node).
     // Our private CA only signs client certs, not the server.
     rejectUnauthorized: true,
     keepAlive: true,
