@@ -40,8 +40,9 @@ export async function POST(request: Request) {
     }
 
     // Send email via Resend
+    // Important: Keep 'from' strictly as 'onboarding@resend.dev' for sandbox accounts
     const { error } = await resend.emails.send({
-      from: "Sangrah Notifications <onboarding@resend.dev>",
+      from: "onboarding@resend.dev",
       to: "arthsrivastava1@gmail.com",
       replyTo: email,
       subject: `New Message from ${name} - Sangrah Contact Form`,

@@ -19,6 +19,7 @@ function SignUpForm() {
   });
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -31,10 +32,34 @@ function SignUpForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // TODO: Connect to access request API
-    await new Promise((r) => setTimeout(r, 1200));
-    setLoading(false);
-    setSubmitted(true);
+    setError("");
+
+    try {
+      const res = await fetch("/api/request-access", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          orgName: formData.orgName,
+          role: formData.role,
+          useCase: formData.useCase,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to submit request.");
+      }
+
+      setSubmitted(true);
+    } catch (err: any) {
+      setError(err.message || "Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (submitted) {
@@ -74,6 +99,12 @@ function SignUpForm() {
               ? "Enterprise deployment with dedicated solutions engineering."
               : "Enterprise federation requires organizational verification."}
         </p>
+
+        {error && (
+          <div className="mb-6 p-3 rounded border border-error/30 bg-error-container/10">
+            <p className="font-mono-ui text-mono-ui text-error text-sm">{error}</p>
+          </div>
+        )}
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
