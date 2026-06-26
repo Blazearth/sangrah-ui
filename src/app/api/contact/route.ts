@@ -1,4 +1,7 @@
 import { NextResponse } from "next/server";
+import { Resend } from "resend";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request: Request) {
   try {
@@ -36,15 +39,39 @@ export async function POST(request: Request) {
       );
     }
 
-    console.info("[contact]", {
-      name,
-      email,
-      message,
-      timestamp: new Date().toISOString(),
+    // Send email via Resend
+    const { error } = await resend.emails.send({
+      from: "Sangrah Notifications <onboarding@resend.dev>",
+      to: "arthsrivastava1@gmail.com",
+      replyTo: email,
+      subject: `New Message from ${name} - Sangrah Contact Form`,
+      html: `
+        <div style="font-family: sans-serif; padding: 20px; color: #333;">
+          <h2 style="color: #2563eb;">New Contact Form Submission</h2>
+          <p><strong>Name:</strong> ${name}</p>
+          <p><strong>Email:</strong> <a href="mailto:${email}">${email}</a></p>
+          <p><strong>Agreed to Privacy Policy:</strong> Yes</p>
+          <h3 style="margin-top: 20px;">Message:</h3>
+          <div style="background: #f4f4f5; padding: 15px; border-radius: 5px; white-space: pre-wrap;">
+            ${message}
+          </div>
+          <br/>
+          <p style="font-size: 12px; color: #888;">Submitted at: ${new Date().toISOString()}</p>
+        </div>
+      `,
     });
 
+    if (error) {
+      console.error("[contact] Resend API Error:", error);
+      return NextResponse.json(
+        { error: "Failed to send the message. Please try again later." },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json({ success: true });
-  } catch {
+  } catch (err) {
+    console.error("[contact] Unhandled Error:", err);
     return NextResponse.json({ error: "Invalid request." }, { status: 400 });
   }
 }
