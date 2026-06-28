@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     // Important: Keep 'from' strictly as 'onboarding@resend.dev' for sandbox accounts
     const { error } = await resend.emails.send({
       from: "onboarding@resend.dev",
-      to: "arthsrivastava1@gmail.com",
+      to: "blaze.work0210@gmail.com",
       replyTo: email,
       subject: `New Access Request - Sangrah`,
       html: `
