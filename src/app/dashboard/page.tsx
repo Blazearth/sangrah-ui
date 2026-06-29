@@ -69,10 +69,12 @@ export default function DashboardPage() {
                 ? "text-green-400"
                 : epoch?.status === "AGGREGATING"
                 ? "text-amber-400"
+                : !epoch && !epochLoading
+                ? "text-amber-400"
                 : "text-outline-variant"
             }`}
           >
-            {epoch?.status ?? (epochError ? "No active epoch" : "Loading...")}
+            {epoch?.status ?? (!epochLoading ? "Pending" : "Loading...")}
           </p>
         </DashboardCard>
 
@@ -164,8 +166,8 @@ export default function DashboardPage() {
               ))}
             </div>
           ) : (
-            <p className="font-body-sm text-sm text-outline-variant py-8 text-center">
-              No active epoch. Activate one via the coordinator.
+            <p className="font-body-sm text-sm text-amber-400/80 py-8 text-center">
+              Epoch is <span className="font-mono-ui uppercase">Pending</span> — waiting to be activated on the coordinator.
             </p>
           )}
         </DashboardCard>

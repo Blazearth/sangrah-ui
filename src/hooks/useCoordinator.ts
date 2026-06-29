@@ -7,6 +7,8 @@ import type { EpochResponse, AuditEntry, HealthResponse } from "@/types/coordina
 
 const fetcher = (url: string) =>
   fetch(url).then((res) => {
+    // 404 on /api/epochs/active means no active epoch (PENDING state) — not a real error
+    if (res.status === 404) return null;
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return res.json();
   });
@@ -29,13 +31,23 @@ export function useHealth() {
 // ─── Active Epoch ─────────────────────────────────────────────────────────────
 export function useActiveEpoch(modelId?: string) {
   const query = modelId ? `?model_id=${modelId}` : "";
-  const { data, error, isLoading, mutate } = useSWR<EpochResponse>(
+  const { data, error, isLoading, mutate } = useSWR<EpochResponse | null>(
     `/api/epochs/active${query}`,
     fetcher,
-    { refreshInterval: 15_000 } // poll every 15s — epoch state changes slowly
+    {
+      refreshInterval: 15_000,
+      // Don't treat null (no active epoch) as an error — just show empty state
+      onErrorRetry: (error, _key, _config, revalidate, { retryCount }) => {
+        // Never retry on 404 — epoch is simply PENDING
+        if (error?.message?.includes("404")) return;
+        // Otherwise retry up to 3 times
+        if (retryCount >= 3) return;
+        setTimeout(() => revalidate({ retryCount }), 5000);
+      },
+    }
   );
   return {
-    epoch: data,
+    epoch: data ?? null,
     isLoading,
     error,
     refresh: mutate,
