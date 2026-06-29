@@ -123,8 +123,20 @@ export default function SignInPage() {
               <span className="text-outline">Password →</span> 1234
             </button>
           </div>
-          <p className="font-body-base text-xs text-outline mt-1">
+          <p className="font-body-base text-xs text-outline mt-2">
             Click above to auto-fill and explore the dashboard.
+          </p>
+        </div>
+
+        {/* Observer note */}
+        <div className="mt-4 rounded-lg border border-outline-variant/20 bg-surface-container/40 px-4 py-3">
+          <p className="font-mono-ui text-xs text-outline uppercase tracking-widest mb-1">
+            Note
+          </p>
+          <p className="font-body-base text-xs text-on-surface-variant leading-relaxed">
+            This UI is a <span className="text-secondary">read-only observer</span> — it fetches live epoch state, audit trails, and model metadata directly from AWS. The actual federated learning work (model training, secure aggregation, mTLS coordination) runs through the{" "}
+            <span className="text-primary font-medium">fl-client-daemon</span> Rust repo and the AWS coordinator at{" "}
+            <span className="text-secondary font-mono">coordinator.fed-learn.online</span>.
           </p>
         </div>
 
