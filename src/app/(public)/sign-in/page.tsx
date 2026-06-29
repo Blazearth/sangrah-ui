@@ -135,7 +135,15 @@ export default function SignInPage() {
           </p>
           <p className="font-body-base text-xs text-on-surface-variant leading-relaxed">
             This UI is a <span className="text-secondary">read-only observer</span> — it fetches live epoch state, audit trails, and model metadata directly from AWS. The actual federated learning work (model training, secure aggregation, mTLS coordination) runs through the{" "}
-            <span className="text-primary font-medium">fl-client-daemon</span> Rust repo and the AWS coordinator at{" "}
+            <a
+              href="https://github.com/Blazearth/fed-learn-model"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-secondary underline underline-offset-2 hover:text-primary transition-colors font-medium"
+            >
+              fl-client-daemon
+            </a>{" "}
+            Rust repo and the AWS coordinator at{" "}
             <span className="text-secondary font-mono">coordinator.fed-learn.online</span>.
           </p>
         </div>
