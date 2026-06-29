@@ -54,7 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         redirect: false,
       });
 
-      if (result?.error) {
+      if (result?.error || !result?.ok) {
         throw new Error("Invalid credentials");
       }
 
