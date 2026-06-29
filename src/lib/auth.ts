@@ -23,6 +23,13 @@ const REGISTERED_USERS: Record<
   string,
   { password: string; name: string; org_id: string; org_name: string; role: string }
 > = {
+  "test": {
+    password: "1234",
+    name: "Demo Judge",
+    org_id: "org-aiims",
+    org_name: "AIIMS Research",
+    role: "observer",
+  },
   "admin@sangrah.dev": {
     password: "sangrah2026",
     name: "Arth Srivastava",
@@ -72,7 +79,7 @@ export const authOptions: NextAuthOptions = {
     CredentialsProvider({
       name: "Organization Credentials",
       credentials: {
-        email: { label: "Email", type: "email" },
+        email: { label: "Email / ID", type: "text" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {

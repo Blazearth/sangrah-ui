@@ -46,14 +46,14 @@ export default function SignInPage() {
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           <div className="flex flex-col gap-2">
             <label className="font-mono-ui text-code-label text-outline uppercase tracking-widest">
-              Email
+              Email / ID
             </label>
             <input
-              type="email"
+              type="text"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="sangrah-input"
-              placeholder="you@organization.com"
+              placeholder="you@organization.com or test"
               required
               autoComplete="email"
             />
@@ -108,8 +108,28 @@ export default function SignInPage() {
           </button>
         </form>
 
+        {/* Demo credentials */}
+        <div className="mt-6 rounded-lg border border-secondary/20 bg-secondary-container/10 px-4 py-3">
+          <p className="font-mono-ui text-xs text-outline uppercase tracking-widest mb-2">
+            Demo Credentials
+          </p>
+          <div className="flex flex-col gap-1">
+            <button
+              type="button"
+              onClick={() => { setEmail("test"); setPassword("1234"); }}
+              className="text-left font-mono-ui text-mono-ui text-on-surface-variant hover:text-secondary transition-colors"
+            >
+              <span className="text-outline">ID →</span> test &nbsp;&nbsp;
+              <span className="text-outline">Password →</span> 1234
+            </button>
+          </div>
+          <p className="font-body-base text-xs text-outline mt-1">
+            Click above to auto-fill and explore the dashboard.
+          </p>
+        </div>
+
         {/* Footer link */}
-        <div className="mt-8 text-center">
+        <div className="mt-6 text-center">
           <p className="font-body-base text-body-sm text-on-surface-variant">
             Don&apos;t have an account?{" "}
             <Link
